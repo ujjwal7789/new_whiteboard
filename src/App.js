@@ -196,7 +196,7 @@ function App() {
 
     ws.current.onclose = () => {};
     return () => ws.current && ws.current.close();
-  }, [currentPage]); // reinitialize on page switch
+  }, [currentPage, clearCanvas, handleNewDrawing]); // reinitialize on page switch
 
   // Setup drawing canvas
   useEffect(() => {
