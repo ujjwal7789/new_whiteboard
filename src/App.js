@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 
-const WS_SERVER = "ws://localhost:3001";
+const WS_SERVER = "wss://new-whiteboard-backend.onrender.com";
 const GRID_STYLES = [
   { value: "none", label: "No Grid" },
   { value: "square", label: "Square Grid" },
@@ -67,27 +67,34 @@ function App() {
   };
 
   // --- Drawing layer canvas ---
-  const clearCanvas = () => {
-    const canvas = drawCanvasRef.current;
-    if (canvas && ctx) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-  };
-
-  const redrawPage = (pageIndex) => {
-    if (!ctx) return;
-    clearCanvas();
-    (pages[pageIndex] || []).forEach((action) => {
-      drawLine(
-        ctx,
-        action.prev,
-        action.current,
-        action.tool,
-        action.color,
-        action.strokeSize
+  const clearCanvas = React.useCallback(() => {
+    if (ctx && drawCanvasRef.current) {
+      ctx.clearRect(
+        0,
+        0,
+        drawCanvasRef.current.width,
+        drawCanvasRef.current.height
       );
-    });
-  };
+    }
+  }, [ctx]);
+
+  const redrawPage = React.useCallback(
+    (pageIndex) => {
+      if (!ctx) return;
+      clearCanvas();
+      (pages[pageIndex] || []).forEach((action) => {
+        drawLine(
+          ctx,
+          action.prev,
+          action.current,
+          action.tool,
+          action.color,
+          action.strokeSize
+        );
+      });
+    },
+    [ctx, pages, clearCanvas]
+  );
 
   const goToPage = (pageIndex) => {
     if (pageIndex < 0 || pageIndex >= pages.length) return;
@@ -111,19 +118,22 @@ function App() {
     });
   };
 
-  const handleNewDrawing = (action) => {
-    addDrawingAction(action);
-    if (ctx) {
-      drawLine(
-        ctx,
-        action.prev,
-        action.current,
-        action.tool,
-        action.color,
-        action.strokeSize
-      );
-    }
-  };
+  const handleNewDrawing = React.useCallback(
+    (action) => {
+      addDrawingAction(action); // Assuming addDrawingAction is stable or also memoized
+      if (ctx) {
+        drawLine(
+          ctx,
+          action.prev,
+          action.current,
+          action.tool,
+          action.color,
+          action.strokeSize
+        );
+      }
+    },
+    [ctx, addDrawingAction]
+  );
 
   const drawLine = (context, start, end, tool, color, size) => {
     context.save();
@@ -200,7 +210,7 @@ function App() {
   // Redraw content when needed
   useEffect(() => {
     redrawPage(currentPage);
-  }, [currentPage, ctx, pages]);
+  }, [currentPage, redrawPage]);
 
   // Redraw grid if style changes
   useEffect(() => {
