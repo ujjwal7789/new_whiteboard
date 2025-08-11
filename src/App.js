@@ -110,13 +110,16 @@ function App() {
     setCurrentPage(pages.length);
   };
 
-  const addDrawingAction = (action) => {
-    setPages((prevPages) => {
-      const updatedPages = [...prevPages];
-      updatedPages[currentPage] = [...updatedPages[currentPage], action];
-      return updatedPages;
-    });
-  };
+  const addDrawingAction = React.useCallback(
+    (action) => {
+      setPages((prevPages) => {
+        const updatedPages = [...prevPages];
+        updatedPages[currentPage] = [...updatedPages[currentPage], action];
+        return updatedPages;
+      });
+    },
+    [currentPage]
+  );
 
   const handleNewDrawing = React.useCallback(
     (action) => {
